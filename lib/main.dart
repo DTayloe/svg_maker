@@ -33,9 +33,7 @@ class SplitWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiSplitView(initialAreas: [
       Area(builder: (context, area) => ParametersView()),
-      Area(builder: (context, area) {
-        return OutputView();
-      }),
+      Area(builder: (context, area) => OutputView()),
     ]);
   }
 }
@@ -60,6 +58,7 @@ class ParametersView extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Container(
               width: double.infinity,
+              height: 50,
               child:
                   ElevatedButton(onPressed: () => {}, child: Text("Generate")),
             ),
@@ -117,8 +116,8 @@ class OutputView extends StatelessWidget {
 </svg>
 ''';
 
-    return SvgPicture.string(
-      rawSvg,
+    return SvgPicture.file(
+      File('assets/boxes.svg'),
       width: 500,
       height: 500,
     );
