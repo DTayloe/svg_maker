@@ -3,11 +3,51 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:multi_split_view/multi_split_view.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+// //Guid stuff https://github.com/rrousselGit/freezed/issues/64#issuecomment-1555921659
+// @freezed
+// class Project with _$Project {
+//   factory Project.def(
+//       {required String projectName,
+//       List<Task>? tasks,
+//       required Guid projectId}) = _Project;
+
+//   factory Project({required String projectName, List<Task>? tasks}) {
+//     return _Project(
+//         projectName: projectName,
+//         tasks: tasks, // might need to do copywith here
+//         projectId: Guid.newGuid);
+//   }
+
+//   Project._();
+
+//   Task? operator [](int index) => tasks?[index];
+// }
+
+class ImageParameters {
+  int _pageWidthTemp = 1122;
+  int _pageHeightTemp = 793;
+  int _shapeDeltaTemp = 300;
+  int _scaleDeltaTemp = 200;
+}
+
+// @riverpod
+// class ProjectRepositoryPod extends _$ProjectRepositoryPod {
+//   @override
+//   ProjectRepository build() {
+//     return ProjectRepository(projects: [
+//       Project(projectName: "projectName 1"),
+//       Project(projectName: "projectName 2")
+//     ]);
+//   }
+// }
 
 void main() {
-  runApp(const MainApp());
+  runApp(ProviderScope(child: MainApp()));
 }
 
 class MainApp extends StatelessWidget {
@@ -38,16 +78,16 @@ class SplitWrapper extends StatelessWidget {
   }
 }
 
-class ParametersView extends StatefulWidget {
+class ParametersView extends ConsumerStatefulWidget {
   const ParametersView({
     super.key,
   });
 
   @override
-  State<ParametersView> createState() => _ParametersViewState();
+  ConsumerState<ParametersView> createState() => _ParametersViewState();
 }
 
-class _ParametersViewState extends State<ParametersView> {
+class _ParametersViewState extends ConsumerState<ParametersView> {
   final pageWidthController = TextEditingController(text: "1122");
   final pageHeightController = TextEditingController(text: "793");
   final shapeDeltaController = TextEditingController(text: "300");
@@ -112,7 +152,7 @@ class _ParametersViewState extends State<ParametersView> {
   }
 }
 
-class OutputView extends StatefulWidget {
+class OutputView extends ConsumerWidget {
   OutputView({super.key});
 
   String svgString = "";
@@ -131,16 +171,11 @@ class OutputView extends StatefulWidget {
   }
 
   @override
-  State<OutputView> createState() => _OutputViewState();
-}
-
-class _OutputViewState extends State<OutputView> {
-  @override
-  Widget build(BuildContext context) {
-    createSvg(OutputView._pageWidthTemp, OutputView._pageHeightTemp,
-        OutputView._shapeDeltaTemp, OutputView._scaleDeltaTemp);
+  Widget build(BuildContext context, WidgetRef ref) {
+    createSvg(
+        _pageWidthTemp, _pageHeightTemp, _shapeDeltaTemp, _scaleDeltaTemp);
     return SvgPicture.string(
-      widget.svgString,
+      svgString,
       // File('assets/boxes.svg'),
       width: 500,
       height: 500,
