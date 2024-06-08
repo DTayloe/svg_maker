@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 import 'package:svg_maker/image_seed_provider.dart';
+
+import 'image_seed_model.dart';
 
 void main() {
   runApp(ProviderScope(child: MainApp()));
@@ -40,41 +44,83 @@ class ParametersView extends ConsumerStatefulWidget {
 }
 
 class _ParametersViewState extends ConsumerState<ParametersView> {
-  var pageWidthController = TextEditingController(text: "1122");
-  var pageHeightController = TextEditingController(text: "793");
-  var shapeDeltaController = TextEditingController(text: "300");
-  var scaleDeltaController = TextEditingController(text: "200");
+  // var pageWidthController = TextEditingController(text: "1122");
+  // var pageHeightController = TextEditingController(text: "793");
+  // var shapeDeltaController = TextEditingController(text: "300");
+  // var scaleDeltaController = TextEditingController(text: "200");
+
+  late List<(Seed<dynamic>, TextEditingController, Widget)>
+      seedControllerMapping;
+
+  // var _livePreviewEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    var asdf = ref.read(seedRepoNotifierProvider);
+    seedControllerMapping = registerSeeds(asdf);
+    print(asdf.toString());
+  }
 
   @override
   Widget build(BuildContext context) {
+    // var parameterInput2 = registerSeed("Page Width", pageWidthController);
+    // var parameterInput3 = registerSeed("Page Height", pageHeightController);
+    // var parameterInput4 = registerSeed("Shape Delta", shapeDeltaController);
+    // var parameterInput5 = registerSeed("Scale Delta", scaleDeltaController);
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          parameterInput("Page Width", pageWidthController),
-          parameterInput("Page Height", pageHeightController),
-          parameterInput("Shape Delta", shapeDeltaController),
-          parameterInput("Scale Delta", scaleDeltaController),
+          // parameterInput2,
+          // parameterInput3,
+          // parameterInput4,
+          // parameterInput5,
           // parameterInput("Shape Skew"),
+          ...seedControllerMapping.map((e) => e.$3),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                  onPressed: () {
-                    // make some of these doubles
-                    int pageWidth = int.parse(pageWidthController.text);
-                    int pageHeight = int.parse(pageHeightController.text);
-                    int shapeDelta = int.parse(shapeDeltaController.text);
-                    int scaleDelta = int.parse(scaleDeltaController.text);
+              child: Column(
+                children: [
+                  ElevatedButton(
+                      onPressed: () {
+                        // make some of these doubles
+                        // int pageWidth = int.parse(pageWidthController.text);
+                        // int pageHeight = int.parse(pageHeightController.text);
+                        // int shapeDelta = int.parse(shapeDeltaController.text);
+                        // int scaleDelta = int.parse(scaleDeltaController.text);
 
-                    print("1 Clicked generate");
+                        print("1 Clicked generate");
 
-                    ref.read(imageSeedNotifierProvider.notifier).updateSeed(
-                        pageWidth, pageHeight, shapeDelta, scaleDelta);
-                  },
-                  child: Text("Generate")),
+                        // ref
+                        //     .read(imageSeedNotifierProvider.notifier)
+                        //     .updateSeeds(
+                        //         pageWidth, pageHeight, shapeDelta, scaleDelta);
+                        ref
+                            .read(imageSeedNotifierProvider.notifier)
+                            .updateSeeds();
+                      },
+                      child: Text("Generate")),
+                  CheckboxListTile(
+                    title: const Text("Live preview"),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: ref.watch(livePreviewEnabledNotifierProvider),
+                    onChanged: (value) {
+                      print("Live update clicked: $value");
+                      // setState(() {
+                      //   _livePreviewEnabled = value!;
+                      // });
+
+                      ref
+                          .read(livePreviewEnabledNotifierProvider.notifier)
+                          .state = value!;
+                    },
+                  )
+                ],
+              ),
             ),
           )
         ],
@@ -82,16 +128,34 @@ class _ParametersViewState extends ConsumerState<ParametersView> {
     );
   }
 
-  Widget parameterInput(String labelText, TextEditingController controller) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        label: Text(labelText),
-      ),
-      keyboardType: TextInputType.number, // make some of these doubles
-      onTap: () => controller.selection = TextSelection(
-          baseOffset: 0, extentOffset: controller.value.text.length),
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+  List<(Seed seed, TextEditingController controller, Widget widget)>
+      registerSeeds(List<Seed> seeds) {
+    return seeds.map((e) {
+      var fieldTuple = createSeedField(e);
+
+      return (e, fieldTuple.$1, fieldTuple.$2);
+    }).toList();
+  }
+
+  (TextEditingController, Widget) createSeedField(Seed seed) {
+    var controller = TextEditingController(text: seed.seedName);
+    return (
+      controller,
+      TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            label: Text(seed.seedName),
+          ),
+          keyboardType: TextInputType.number, // make some of these doubles
+          onTap: () => controller.selection = TextSelection(
+              baseOffset: 0, extentOffset: controller.value.text.length),
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          onFieldSubmitted: (value) => print("onFieldSubmitted")
+          // ref
+          //     .read(imageSeedNotifierProvider.notifier)
+          //     .updateSeed()
+
+          )
     );
   }
 
