@@ -1,50 +1,9 @@
-import 'dart:io';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:multi_split_view/multi_split_view.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-// //Guid stuff https://github.com/rrousselGit/freezed/issues/64#issuecomment-1555921659
-// @freezed
-// class Project with _$Project {
-//   factory Project.def(
-//       {required String projectName,
-//       List<Task>? tasks,
-//       required Guid projectId}) = _Project;
-
-//   factory Project({required String projectName, List<Task>? tasks}) {
-//     return _Project(
-//         projectName: projectName,
-//         tasks: tasks, // might need to do copywith here
-//         projectId: Guid.newGuid);
-//   }
-
-//   Project._();
-
-//   Task? operator [](int index) => tasks?[index];
-// }
-
-class ImageParameters {
-  int _pageWidthTemp = 1122;
-  int _pageHeightTemp = 793;
-  int _shapeDeltaTemp = 300;
-  int _scaleDeltaTemp = 200;
-}
-
-// @riverpod
-// class ProjectRepositoryPod extends _$ProjectRepositoryPod {
-//   @override
-//   ProjectRepository build() {
-//     return ProjectRepository(projects: [
-//       Project(projectName: "projectName 1"),
-//       Project(projectName: "projectName 2")
-//     ]);
-//   }
-// }
+import 'package:svg_maker/image_seed_provider.dart';
 
 void main() {
   runApp(ProviderScope(child: MainApp()));
@@ -55,26 +14,19 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: SplitWrapper(),
-      ),
+          body: MultiSplitViewTheme(
+              data: MultiSplitViewThemeData(
+                  dividerPainter: DividerPainters.grooved1(
+                      color: Colors.indigo[100]!,
+                      highlightedColor: Colors.indigo[900]!)),
+              child: MultiSplitView(initialAreas: [
+                Area(builder: (context, area) => ParametersView(), size: 300),
+                Area(builder: (context, area) => OutputView()),
+              ]))),
     );
-  }
-}
-
-class SplitWrapper extends StatelessWidget {
-  const SplitWrapper({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiSplitView(initialAreas: [
-      Area(builder: (context, area) => ParametersView(), size: 300),
-      Area(builder: (context, area) => OutputView()),
-    ]);
   }
 }
 
@@ -88,10 +40,10 @@ class ParametersView extends ConsumerStatefulWidget {
 }
 
 class _ParametersViewState extends ConsumerState<ParametersView> {
-  final pageWidthController = TextEditingController(text: "1122");
-  final pageHeightController = TextEditingController(text: "793");
-  final shapeDeltaController = TextEditingController(text: "300");
-  final scaleDeltaController = TextEditingController(text: "200");
+  var pageWidthController = TextEditingController(text: "1122");
+  var pageHeightController = TextEditingController(text: "793");
+  var shapeDeltaController = TextEditingController(text: "300");
+  var scaleDeltaController = TextEditingController(text: "200");
 
   @override
   Widget build(BuildContext context) {
@@ -112,12 +64,14 @@ class _ParametersViewState extends ConsumerState<ParametersView> {
               child: ElevatedButton(
                   onPressed: () {
                     // make some of these doubles
-                    final int pageWidth = int.parse(pageWidthController.text);
-                    final int pageHeight = int.parse(pageHeightController.text);
-                    final int shapeDelta = int.parse(shapeDeltaController.text);
-                    final int scaleDelta = int.parse(scaleDeltaController.text);
+                    int pageWidth = int.parse(pageWidthController.text);
+                    int pageHeight = int.parse(pageHeightController.text);
+                    int shapeDelta = int.parse(shapeDeltaController.text);
+                    int scaleDelta = int.parse(scaleDeltaController.text);
 
-                    OutputView.generate(
+                    print("1 Clicked generate");
+
+                    ref.read(imageSeedNotifierProvider.notifier).updateSeed(
                         pageWidth, pageHeight, shapeDelta, scaleDelta);
                   },
                   child: Text("Generate")),
@@ -143,6 +97,7 @@ class _ParametersViewState extends ConsumerState<ParametersView> {
 
   @override
   void dispose() {
+    print("Disposed");
     // Clean up the controller when the widget is removed from the widget tree.
     pageWidthController.dispose();
     pageHeightController.dispose();
@@ -153,44 +108,33 @@ class _ParametersViewState extends ConsumerState<ParametersView> {
 }
 
 class OutputView extends ConsumerWidget {
-  OutputView({super.key});
-
-  String svgString = "";
-
-  static int _pageWidthTemp = 1122;
-  static int _pageHeightTemp = 793;
-  static int _shapeDeltaTemp = 300;
-  static int _scaleDeltaTemp = 200;
-
-  static void generate(
-      int pageWidth, int pageHeight, int shapeDelta, int scaleDelta) {
-    _pageWidthTemp = pageWidth;
-    _pageHeightTemp = pageHeight;
-    _shapeDeltaTemp = shapeDelta;
-    _scaleDeltaTemp = scaleDelta;
-  }
+  const OutputView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    createSvg(
-        _pageWidthTemp, _pageHeightTemp, _shapeDeltaTemp, _scaleDeltaTemp);
+    print("2 OutputView build");
+
+    // Very important! Will not refresh when value changes without this call. https://stackoverflow.com/a/78596381/3752444
+    ref.watch(imageSeedNotifierProvider);
+
     return SvgPicture.string(
-      svgString,
+      createSvg(ref.read(imageSeedNotifierProvider.notifier).getSeed()),
       // File('assets/boxes.svg'),
       width: 500,
       height: 500,
     );
   }
 
-  void createSvg(
-      int pageWidth, int pageHeight, int shapeDelta, int scaleDelta) {
-    widget.svgString = '''
+  String createSvg(ImageSeed seed) {
+    print("3 Creating SVG string!");
+
+    return '''
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="${pageWidth}px"
-   height="${pageHeight}px"
+   width="${seed.pageWidth}px"
+   height="${seed.pageHeight}px"
    viewBox="0 0 1122.5197 793.70081"
    version="1.1"
    id="svg1"
@@ -203,15 +147,15 @@ class OutputView extends ConsumerWidget {
   <sodipodi:namedview id="namedview1" pagecolor="#ffffff" bordercolor="#000000" borderopacity="0.25" inkscape:showpageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="0" inkscape:deskcolor="#d1d1d1" inkscape:document-units="mm" inkscape:zoom="1.052151" inkscape:cx="580.23991" inkscape:cy="382.54965" inkscape:window-width="1920" inkscape:window-height="1137" inkscape:window-x="-8" inkscape:window-y="746" inkscape:window-maximized="1" inkscape:current-layer="layer4" />
   <defs id="defs1" />
   <g inkscape:groupmode="layer" id="layer1" inkscape:label="Layer 1">
-    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect1"   width="$shapeDelta"   height="$scaleDelta"   x="50"   y="50"   />
-    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect2"   width="$shapeDelta"   height="$scaleDelta"   x="407.5065617"   y="50"   />
-    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect3"   width="$shapeDelta"   height="$scaleDelta"   x="765.0131234"   y="50"   />
-    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect4"   width="$shapeDelta"   height="$scaleDelta"   x="50"   y="297.9002625"   />
-    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect5"   width="$shapeDelta"   height="$scaleDelta"   x="407.5065617"   y="297.9002625"   />
-    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect6"   width="$shapeDelta"   height="$scaleDelta"   x="765.0131234"   y="297.9002625"   />
-    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect7"   width="$shapeDelta"   height="$scaleDelta"   x="50"   y="545.8005249"   />
-    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect8"   width="$shapeDelta"   height="$scaleDelta"   x="407.5065617"   y="545.8005249"   />
-    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect9"   width="$shapeDelta"   height="$scaleDelta"   x="765.0131234"   y="545.8005249"   />
+    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect1"   width="${seed.shapeDelta}"   height="${seed.scaleDelta}"   x="50"   y="50"   />
+    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect2"   width="${seed.shapeDelta}"   height="${seed.scaleDelta}"   x="407.5065617"   y="50"   />
+    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect3"   width="${seed.shapeDelta}"   height="${seed.scaleDelta}"   x="765.0131234"   y="50"   />
+    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect4"   width="${seed.shapeDelta}"   height="${seed.scaleDelta}"   x="50"   y="297.9002625"   />
+    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect5"   width="${seed.shapeDelta}"   height="${seed.scaleDelta}"   x="407.5065617"   y="297.9002625"   />
+    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect6"   width="${seed.shapeDelta}"   height="${seed.scaleDelta}"   x="765.0131234"   y="297.9002625"   />
+    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect7"   width="${seed.shapeDelta}"   height="${seed.scaleDelta}"   x="50"   y="545.8005249"   />
+    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect8"   width="${seed.shapeDelta}"   height="${seed.scaleDelta}"   x="407.5065617"   y="545.8005249"   />
+    <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect9"   width="${seed.shapeDelta}"   height="${seed.scaleDelta}"   x="765.0131234"   y="545.8005249"   />
   </g>
 </svg>
 ''';
