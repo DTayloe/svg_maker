@@ -6,9 +6,11 @@ part of 'image_seed_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$imageSeedNotifierHash() => r'50d7e2e256f438c8a898f12f47eeab027e48ef88';
+String _$imageSeedNotifierHash() => r'3813cf2d9ef3d49643c7cfb8966d8deaba61e9ef';
 
-/// See also [ImageSeedNotifier].
+/// Old way - remove it
+///
+/// Copied from [ImageSeedNotifier].
 @ProviderFor(ImageSeedNotifier)
 final imageSeedNotifierProvider =
     AutoDisposeNotifierProvider<ImageSeedNotifier, ImageSeed>.internal(
@@ -22,9 +24,11 @@ final imageSeedNotifierProvider =
 );
 
 typedef _$ImageSeedNotifier = AutoDisposeNotifier<ImageSeed>;
-String _$seedRepoNotifierHash() => r'ab09c51b97ef18b25b775e28542850a6c2bd8a37';
+String _$seedRepoNotifierHash() => r'2b110b2390282124e012ba381e1b870eded99af9';
 
-/// See also [SeedRepoNotifier].
+/// New way
+///
+/// Copied from [SeedRepoNotifier].
 @ProviderFor(SeedRepoNotifier)
 final seedRepoNotifierProvider =
     AutoDisposeNotifierProvider<SeedRepoNotifier, List<Seed<dynamic>>>.internal(
