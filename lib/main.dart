@@ -248,12 +248,15 @@ class OutputView extends ConsumerWidget {
     // ref.watch(imageSeedNotifierProvider);
     ref.watch(seedRepoNotifierProvider);
 
-    return SvgPicture.string(
-      // createSvg(ref.read(imageSeedNotifierProvider.notifier).getSeed()),
-      createSvg(ref.read(seedRepoNotifierProvider.notifier).getSeeds()),
-      // File('assets/boxes.svg'),
-      width: 500,
-      height: 500,
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SvgPicture.string(
+        // createSvg(ref.read(imageSeedNotifierProvider.notifier).getSeed()),
+        createSvg(ref.read(seedRepoNotifierProvider.notifier).getSeeds()),
+        // File('assets/boxes.svg'),
+        width: 500,
+        height: 500,
+      ),
     );
   }
 
@@ -285,6 +288,7 @@ class OutputView extends ConsumerWidget {
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview id="namedview1" pagecolor="#ffffff" bordercolor="#000000" borderopacity="0.25" inkscape:showpageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="0" inkscape:deskcolor="#d1d1d1" inkscape:document-units="mm" inkscape:zoom="1.052151" inkscape:cx="580.23991" inkscape:cy="382.54965" inkscape:window-width="1920" inkscape:window-height="1137" inkscape:window-x="-8" inkscape:window-y="746" inkscape:window-maximized="1" inkscape:current-layer="layer4" />
   <defs id="defs1" />
+  <rect width="${pageWidth}px" height="${pageHeight}px" style="fill:#ffffff;stroke-width:1" stroke="black"/>
   <g inkscape:groupmode="layer" id="layer1" inkscape:label="Layer 1">
     <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect1"   width="${shapeDelta}"   height="${scaleDelta}"   x="50"   y="50"   />
     <rect   style="fill:#0000ff;stroke-width:0.933205"   id="rect2"   width="${shapeDelta}"   height="${scaleDelta}"   x="407.5065617"   y="50"   />
